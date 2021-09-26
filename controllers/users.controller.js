@@ -1,4 +1,5 @@
 const queryBuilder = require('../helpers/queryBuilder');
+const { getErrorMessage } = require('../helpers/errorMessage');
 const APIs = require('../constants/apis');
 
 exports.getAllUsers = async (req, res) => {
@@ -18,10 +19,10 @@ exports.getAllUsers = async (req, res) => {
     } catch (e) {
         res.status(500).send({
             error: 'SERVER_ERROR',
-            errorMessage: 'Internal server error'
+            errorMessage: getErrorMessage('USERS', 'SERVER_ERROR')
         });
     }
     finally {
-        // connection.release();
+        connection.release();
     }
 };
