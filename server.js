@@ -13,7 +13,7 @@ app.use(express.urlencoded({
     limit: '50mb',
     extended: true
 }));
-app.use(dbBridge.createConnection);
+app.use(dbBridge.openConnection);
 
 app.use((req, res, next) => {
     try {
@@ -27,7 +27,7 @@ app.use((req, res, next) => {
 });
 
 app.get('/', (req, res) => {
-    res.status(200).send(process.env.PORT);
+    res.status(200).send('ok');
 });
 
 app.listen(process.env.PORT || 4000);

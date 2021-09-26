@@ -1,7 +1,7 @@
 const mysql = require('mysql2');
 const { getErrorMessage } = require('../helpers/errorMessage');
 
-exports.createConnection = async (req, res, next) => {
+exports.openConnection = async (req, res, next) => {
     if (!req.headers.app_id) {
         return res.status(400).send({
             error: 'BAD_REQUEST',
