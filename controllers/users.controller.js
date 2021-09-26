@@ -22,6 +22,6 @@ exports.getAllUsers = async (req, res) => {
         });
     }
     finally {
-        connection.release();
+        // connection.release();
     }
 };

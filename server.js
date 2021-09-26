@@ -1,7 +1,7 @@
 const express = require('express');
 const dotenv = require('dotenv');
 const cors = require('cors');
-const dbWrapper = require('./middlewares/dbConnection');
+const dbBridge = require('./middlewares/dbConnection');
 
 const app = express();
 
@@ -13,7 +13,7 @@ app.use(express.urlencoded({
     limit: '50mb',
     extended: true
 }));
-app.use(dbWrapper.createConnection);
+app.use(dbBridge.createConnection);
 
 app.use((req, res, next) => {
     try {
