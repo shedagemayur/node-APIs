@@ -5,7 +5,7 @@ const queryBuilder = (key, params = {}) => {
 
     if (params !== null) {
         Object.keys(params).forEach(key => {
-            sql = sql.replace('{' + key + '}', params[key]);
+            sql = sql.replace('<<' + key + '>>', params[key]);
         });
     }
     return sql;
