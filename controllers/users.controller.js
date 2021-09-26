@@ -47,7 +47,7 @@ exports.getAllUsers = async (req, res) => {
         'perPage': connection.escape(perPage)
     });
     try {
-        const [rows] = await connection.execute(sql);
+        const [rows] = await connection.query(sql, ['users']);
         res.status(200).json(rows);
     } catch (e) {
         res.status(500).send({
@@ -65,16 +65,15 @@ exports.getUser = async (req, res) => {
 
     const connection = await connectionPool.getConnection();
 
-    const sql = queryBuilder(APIs.USERS.GET, {
-        'uid': connection.escape(uid)
-    });
+    const sql = queryBuilder(APIs.USERS.CURRENT, {});
 
     try {
-        const [rows] = await connection.execute(sql);
+        const [rows] = await connection.query(sql, ['users', uid]);
         if (rows.length) return res.status(200).json(rows);
 
         res.status(404).json(rows);
     } catch (e) {
+        console.log(e);
         res.status(500).send({
             error: 'SERVER_ERROR',
             message: getErrorMessage('USERS', 'SERVER_ERROR')

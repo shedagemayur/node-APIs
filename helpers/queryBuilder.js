@@ -1,4 +1,4 @@
-const users = require('../database/queries/_users');
+const users = require('../database/queries/_users.sql');
 
 const queryBuilder = (key, params = {}) => {
     let sql = users[key];
