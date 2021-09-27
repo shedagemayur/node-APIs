@@ -39,7 +39,10 @@ exports.execute = async (req, res, next) => {
     }, next);
 }
 
-function getRedisCache(key, value, cb, next) {
+// need to handled redis connection failure
+// if redis failed to connect then call cb function to continue with mysql
+
+const getRedisCache = (key, value, cb, next) => {
     return new Promise((resolve, reject) => {
         redisClient.hget(key, value, async (error, data) => {
             if (data != null) {
