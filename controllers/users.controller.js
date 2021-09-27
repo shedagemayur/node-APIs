@@ -4,7 +4,7 @@ const APIs = require('../constants/apis');
 
 exports.createUser = async (req, res) => {
     const requireFileds = ['uid', 'name'];
-    if (!validateUser(requireFileds, req.body, res)) return;
+    if (!validateUserRequest(requireFileds, req.body, res)) return;
 
     let user = req.body;
 
@@ -35,14 +35,14 @@ exports.createUser = async (req, res) => {
     }
 };
 
-exports.getAllUsers = async (req, res) => {
+exports.listUsers = async (req, res) => {
     const perPage = 10;
     const page = req.query.page == null ? 1 : req.query.page;
     const startAt = perPage * (page - 1);
 
     const connection = await connectionPool.getConnection();
 
-    const sql = queryBuilder(APIs.USERS.ALL, {
+    const sql = queryBuilder(APIs.USERS.LIST, {
         'startAt': connection.escape(startAt),
         'perPage': connection.escape(perPage)
     });
@@ -84,30 +84,35 @@ exports.getUser = async (req, res) => {
     }
 };
 
-const validateUser = (fields, body, res) => {
+exports.updateUser = () => {
+
+};
+
+exports.deleteUser = () => {
+
+}
+
+const validateUserRequest = (fields, user, res) => {
     let isValid = true;
 
-    let missingRequiredFields = fields.filter(x => !Object.keys(body).includes(x));
-
-    if (missingRequiredFields.length) {
-        isValid = false;
-        res.status(200).send({
-            error: 'ERR_MISSING_FIELD',
-            message: getErrorMessage('USERS', 'ERR_MISSING_FIELD', missingRequiredFields[0])
-        });
-    }
-
-    Object.keys(body).forEach(field => {
-        if (fields.indexOf(field) !== -1) {
-            if (!body[field].trim()) {
-                isValid = false;
-                res.status(200).send({
-                    error: 'ERR_EMPTY_FIELD',
-                    message: getErrorMessage('USERS', 'ERR_EMPTY_FIELD', field)
-                });
-                return;
-            }
+    fields.forEach(property => {
+        if (!user.hasOwnProperty(property)) {
+            // required field missing
+            isValid = false;
+            return res.status(200).send({
+                error: 'ERR_MISSING_FIELD',
+                message: getErrorMessage('USERS', 'ERR_MISSING_FIELD', property)
+            });
+        }
+        if (user.hasOwnProperty(property) && !user[property]) {
+            // required field is empty
+            isValid = false;
+            return res.status(200).send({
+                error: 'ERR_EMPTY_FIELD',
+                message: getErrorMessage('USERS', 'ERR_EMPTY_FIELD', property)
+            });
         }
     });
+
     return isValid;
 };

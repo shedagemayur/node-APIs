@@ -3,9 +3,14 @@ const express = require('express');
 const router = express.Router();
 
 module.exports = (app) => {
-    router.get('/', userController.getAllUsers);
+    router.get('/', userController.listUsers);
     router.post('/', userController.createUser);
-    router.get('/:uid', userController.getUser);
+
+    router
+        .route('/:uid')
+        .get(userController.getUser)
+        .put(userController.updateUser)
+        .delete(userController.deleteUser);
 
     app.use('/v1/users', router);
 }

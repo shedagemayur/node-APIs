@@ -1,8 +1,8 @@
 const APIs = {
     USERS: {
-        ALL: 'get-all-users',
-        CURRENT: 'get-user',
-        CREATE: 'create-user'
+        LIST: 'listUsers',
+        CURRENT: 'getUser',
+        CREATE: 'createUser'
     }
 }
 
