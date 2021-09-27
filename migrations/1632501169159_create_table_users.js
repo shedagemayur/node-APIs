@@ -1,5 +1,5 @@
 module.exports = {
-    "up": "CREATE TABLE `users` (`uid` varchar(100) COLLATE utf8mb4_unicode_ci NOT NULL,"
+    "up": "CREATE TABLE IF NOT EXISTS `users` (`uid` varchar(100) COLLATE utf8mb4_unicode_ci NOT NULL,"
         + " `name` varchar(100) COLLATE utf8mb4_unicode_ci NOT NULL,"
         + " `avatar` varchar(3000) COLLATE utf8mb4_unicode_ci DEFAULT NULL,"
         + " `link` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,"

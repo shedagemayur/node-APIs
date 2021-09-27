@@ -1,20 +1,53 @@
 const { exec } = require("child_process");
+const { getErrorMessage } = require('../helpers/errorMessage');
+const Redis = require('redis');
 
-const migrationExecutor = function (req, res, next) {
-    global.dbName = req.query.db;
+const redisClient = Redis.createClient();
 
-    exec("node migration.js up", (error, stdout, stderr) => {
-        if (error) {
-            console.log(`error: ${error.message}`);
-            return;
+exports.execute = async (req, res, next) => {
+    const dbName = req.headers.app_id;
+    await getRedisCache('migrations', dbName, async () => {
+        const connection = await connectionPool.getConnection();
+
+        try {
+            await connection.query('CREATE TABLE IF NOT EXISTS `mysql_migrations_347ertt3e` (`timestamp` varchar(254) NOT NULL UNIQUE)');
+
+            exec("node migration.js up " + dbName, (error, stdout, stderr) => {
+                if (error) {
+                    console.log(`error: ${error.message}`);
+                    return;
+                }
+                if (stderr) {
+                    console.log(`stderr: ${stderr}`);
+                    return;
+                }
+                console.log(`stdout: ${stdout}`);
+
+                redisClient.hset('migrations', dbName, 1);
+                next();
+            });
+        } catch (e) {
+            console.log(e);
+            res.status(500).send({
+                error: 'SERVER_ERROR',
+                message: getErrorMessage('USERS', 'SERVER_ERROR')
+            });
         }
-        if (stderr) {
-            console.log(`stderr: ${stderr}`);
-            return;
+        finally {
+            connection.release();
         }
-        console.log(`stdout: ${stdout}`);
-    });
-    next();
+    }, next);
 }
 
-module.exports = migrationExecutor;
+function getRedisCache(key, value, cb, next) {
+    return new Promise((resolve, reject) => {
+        redisClient.hget(key, value, async (error, data) => {
+            if (data != null) {
+                next();
+                resolve(data);
+            } else {
+                cb();
+            }
+        });
+    });
+}

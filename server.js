@@ -1,7 +1,8 @@
 const express = require('express');
 const dotenv = require('dotenv');
 const cors = require('cors');
-const dbBridge = require('./middlewares/dbConnection');
+const database = require('./middlewares/dbConnection');
+const migration = require('./middlewares/migrationExec');
 
 const app = express();
 
@@ -13,7 +14,8 @@ app.use(express.urlencoded({
     limit: '50mb',
     extended: true
 }));
-app.use(dbBridge.openConnection);
+app.use(database.openConnection);
+app.use(migration.execute);
 
 app.use((req, res, next) => {
     try {

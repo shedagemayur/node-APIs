@@ -1,5 +1,5 @@
 module.exports = {
-    "up": "CREATE TABLE `groups` ("
+    "up": "CREATE TABLE IF NOT EXISTS `groups` ("
         + " `guid` varchar(100) COLLATE utf8mb4_unicode_ci NOT NULL,"
         + " `name` varchar(100) COLLATE utf8mb4_unicode_ci NOT NULL,"
         + " `type` enum('public','password','private') COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'private',"
