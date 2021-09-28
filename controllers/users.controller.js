@@ -4,7 +4,7 @@ const APIs = require('../constants/apis');
 
 exports.createUser = async (req, res) => {
     const requireFileds = ['uid', 'name'];
-    if (!validateUserRequest(requireFileds, req.body, res)) return;
+    if (!checkRequestBody(requireFileds, req.body, res)) return;
 
     let user = req.body;
 
@@ -27,7 +27,7 @@ exports.createUser = async (req, res) => {
         console.log(e);
         res.status(500).send({
             error: 'SERVER_ERROR',
-            message: getErrorMessage('USERS', 'SERVER_ERROR')
+            message: getErrorMessage('GLOBALS', 'SERVER_ERROR')
         });
     }
     finally {
@@ -52,7 +52,7 @@ exports.listUsers = async (req, res) => {
     } catch (e) {
         res.status(500).send({
             error: 'SERVER_ERROR',
-            message: getErrorMessage('USERS', 'SERVER_ERROR')
+            message: getErrorMessage('GLOBALS', 'SERVER_ERROR')
         });
     }
     finally {
@@ -60,7 +60,34 @@ exports.listUsers = async (req, res) => {
     }
 };
 
-exports.getUser = async (req, res) => {
+exports.getUser = async (req, res, next) => {
+    const uid = req.params.uid;
+    const connection = await connectionPool.getConnection();
+
+    const sql = queryBuilder(APIs.USERS.CURRENT, {});
+
+    try {
+        const [rows] = await connection.query(sql, ['users', uid]);
+        if (rows.length) return res.status(200).json(rows);
+
+        res.status(404).json(rows);
+    } catch (e) {
+        console.log(e);
+        res.status(500).send({
+            error: 'SERVER_ERROR',
+            message: getErrorMessage('GLOBALS', 'SERVER_ERROR')
+        });
+    }
+    finally {
+        connection.release();
+    }
+};
+
+exports.updateUser = () => {
+
+};
+
+exports.deleteUser = async (req, res) => {
     const uid = req.params.uid;
 
     const connection = await connectionPool.getConnection();
@@ -76,40 +103,32 @@ exports.getUser = async (req, res) => {
         console.log(e);
         res.status(500).send({
             error: 'SERVER_ERROR',
-            message: getErrorMessage('USERS', 'SERVER_ERROR')
+            message: getErrorMessage('GLOBALS', 'SERVER_ERROR')
         });
     }
     finally {
         connection.release();
     }
-};
-
-exports.updateUser = () => {
-
-};
-
-exports.deleteUser = () => {
-
 }
 
-const validateUserRequest = (fields, user, res) => {
+const checkRequestBody = (fields, reqBody, res) => {
     let isValid = true;
 
     fields.forEach(property => {
-        if (!user.hasOwnProperty(property)) {
+        if (!reqBody.hasOwnProperty(property)) {
             // required field missing
             isValid = false;
             return res.status(200).send({
                 error: 'ERR_MISSING_FIELD',
-                message: getErrorMessage('USERS', 'ERR_MISSING_FIELD', property)
+                message: getErrorMessage('GLOBALS', 'ERR_MISSING_FIELD', property)
             });
         }
-        if (user.hasOwnProperty(property) && !user[property]) {
+        if (reqBody.hasOwnProperty(property) && !reqBody[property]) {
             // required field is empty
             isValid = false;
             return res.status(200).send({
                 error: 'ERR_EMPTY_FIELD',
-                message: getErrorMessage('USERS', 'ERR_EMPTY_FIELD', property)
+                message: getErrorMessage('GLOBALS', 'ERR_EMPTY_FIELD', property)
             });
         }
     });

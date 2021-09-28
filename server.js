@@ -1,12 +1,11 @@
+require('dotenv').config();
+
 const express = require('express');
-const dotenv = require('dotenv');
 const cors = require('cors');
 const database = require('./middlewares/dbConnection');
 const migration = require('./middlewares/migrationExec');
 
 const app = express();
-
-dotenv.config();
 
 app.use(cors());
 app.use(express.json({ limit: '50mb' }));

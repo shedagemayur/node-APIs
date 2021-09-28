@@ -2,13 +2,13 @@ const mysql = require('mysql2');
 const { getErrorMessage } = require('../helpers/errorMessage');
 
 exports.openConnection = async (req, res, next) => {
-    if (!req.headers.app_id) {
+    if (!req.headers['app_id']) {
         return res.status(400).send({
             error: 'BAD_REQUEST',
             message: getErrorMessage('APP', 'BAD_REQUEST')
         });
     }
-    const ON_DEMAND_DB = req.headers.app_id;
+    const ON_DEMAND_DB = req.headers['app_id'];
 
     connectionPool = mysql.createPool({
         host: process.env.DB_HOST,
@@ -29,7 +29,7 @@ exports.openConnection = async (req, res, next) => {
         console.error(err);
         res.status(404).json({
             error: 'NOT_FOUND',
-            message: getErrorMessage('APP', 'NOT_FOUND', req.headers.app_id)
+            message: getErrorMessage('APP', 'NOT_FOUND', ON_DEMAND_DB)
         });
     }
 };

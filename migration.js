@@ -1,8 +1,7 @@
+require('dotenv').config();
+
 const mysql = require('mysql2');
 const migrations = require('mysql-migrations');
-const dotenv = require('dotenv');
-
-dotenv.config();
 
 const checkCommand = process.argv.slice(2);
 
