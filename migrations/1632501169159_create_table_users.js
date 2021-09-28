@@ -9,7 +9,6 @@ module.exports = {
         + " `lastActiveAt` int DEFAULT NULL,"
         + " `statusMessage` text COLLATE utf8mb4_unicode_ci,"
         + " `metadata` json DEFAULT NULL,"
-        + " `xmppPassword` varchar(100) COLLATE utf8mb4_unicode_ci NOT NULL,"
         + " `credits` int NOT NULL DEFAULT '0',"
         + " `createdBy` varchar(100) COLLATE utf8mb4_unicode_ci NOT NULL,"
         + " `updatedBy` varchar(100) COLLATE utf8mb4_unicode_ci DEFAULT NULL,"

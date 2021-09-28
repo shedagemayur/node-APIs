@@ -1,5 +1,8 @@
 const mysql = require('mysql2');
 const migrations = require('mysql-migrations');
+const dotenv = require('dotenv');
+
+dotenv.config();
 
 const checkCommand = process.argv.slice(2);
 
@@ -21,6 +24,7 @@ if (checkCommand.length && checkCommand[0] == 'up') {
         console.log("finished running migrations");
     });
 } else if (checkCommand.length && checkCommand[0] == 'add') {
+
     const connection = mysql.createPool({
         connectionLimit: 10,
         host: process.env.DB_HOST,
