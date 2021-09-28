@@ -14,7 +14,7 @@ exports.createUser = async (req, res) => {
     user.createdAt = user.updatedAt = Math.floor(+new Date() / 1000);
 
     try {
-        const [rows] = await connection.query(sql, user);
+        const [rows] = await connection.query(sql, ['users', user]);
 
         res.status(201).json([user]);
     } catch (e) {
@@ -89,16 +89,23 @@ exports.updateUser = () => {
 
 exports.deleteUser = async (req, res) => {
     const uid = req.params.uid;
-
     const connection = await connectionPool.getConnection();
 
     const sql = queryBuilder(APIs.USERS.CURRENT, {});
 
     try {
         const [rows] = await connection.query(sql, ['users', uid]);
-        if (rows.length) return res.status(200).json(rows);
+        if (rows.length) {
+            const sql = queryBuilder(APIs.USERS.DELETE, {});
+            await connection.query(sql, ['users', uid]);
 
-        res.status(404).json(rows);
+            res.status(204);
+        } else {
+            return res.status(404).json({
+                error: 'ER_USER_NOT_FOUND',
+                message: getErrorMessage('USERS', 'ER_USER_NOT_FOUND', uid)
+            });
+        }
     } catch (e) {
         console.log(e);
         res.status(500).send({
@@ -119,16 +126,16 @@ const checkRequestBody = (fields, reqBody, res) => {
             // required field missing
             isValid = false;
             return res.status(200).send({
-                error: 'ERR_MISSING_FIELD',
-                message: getErrorMessage('GLOBALS', 'ERR_MISSING_FIELD', property)
+                error: 'ER_MISSING_FIELD',
+                message: getErrorMessage('GLOBALS', 'ER_MISSING_FIELD', property)
             });
         }
         if (reqBody.hasOwnProperty(property) && !reqBody[property]) {
             // required field is empty
             isValid = false;
             return res.status(200).send({
-                error: 'ERR_EMPTY_FIELD',
-                message: getErrorMessage('GLOBALS', 'ERR_EMPTY_FIELD', property)
+                error: 'ER_EMPTY_FIELD',
+                message: getErrorMessage('GLOBALS', 'ER_EMPTY_FIELD', property)
             });
         }
     });

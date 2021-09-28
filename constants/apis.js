@@ -2,7 +2,9 @@ const APIs = {
     USERS: {
         LIST: 'listUsers',
         CURRENT: 'getUser',
-        CREATE: 'createUser'
+        CREATE: 'createUser',
+        DELETE: 'deleteUser',
+        UPDATE: 'updateUser'
     }
 }
 
