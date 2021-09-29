@@ -2,14 +2,7 @@ const User = require('../models/user.model');
 const { getErrorMessage } = require('../helpers/errorMessage');
 
 exports.create = (req, res) => {
-    const user = new User({
-        uid: req.body.uid,
-        name: req.body.name,
-        avatar: req.body.avatar,
-        link: req.body.link,
-        role: req.body.role,
-        metadata: req.body.metadata
-    });
+    const user = new User(req.body);
 
     User.create(user, (err, data, statusCode = 200) => {
         if (err) {
