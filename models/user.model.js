@@ -1,6 +1,6 @@
-const queryBuilder = require('../helpers/queryBuilder');
-const { getErrorMessage } = require('../helpers/errorMessage');
 const APIs = require('../constants/apis');
+const queryBuilder = require('../helpers/queryBuilder');
+const { getResponseMessage } = require('../helpers/responseMessage');
 
 function User(user) {
     this.uid = user.uid;
@@ -26,7 +26,7 @@ User.validate = (requiredProperties, newCustomer) => {
         if (newCustomer.hasOwnProperty(requiredProperties[i]) && newCustomer[requiredProperties[i]] === undefined || newCustomer[requiredProperties[i]] == '') {
             return {
                 error: 'ER_MISSING_FIELD',
-                message: getErrorMessage('GLOBALS', 'ER_MISSING_FIELD', requiredProperties[i])
+                message: getResponseMessage('GLOBALS', 'ER_MISSING_FIELD', requiredProperties[i])
             };
         }
     }
@@ -48,12 +48,12 @@ User.create = async (newCustomer, callback) => {
         if (typeof (e) == 'object' && e.hasOwnProperty('code') && e.code == 'ER_DUP_ENTRY') {
             callback({
                 error: 'ER_DUP_ENTRY',
-                message: getErrorMessage('USERS', 'ER_DUP_ENTRY', newCustomer.uid)
+                message: getResponseMessage('USERS', 'ER_DUP_ENTRY', newCustomer.uid)
             }, null, 409);
         } else {
             callback({
                 error: 'SERVER_ERROR',
-                message: getErrorMessage('GLOBALS', 'SERVER_ERROR')
+                message: getResponseMessage('GLOBALS', 'SERVER_ERROR')
             }, null, 500);
         }
     }
@@ -79,7 +79,7 @@ User.getAll = async (pageNo, callback) => {
     } catch (e) {
         callback({
             error: 'SERVER_ERROR',
-            message: getErrorMessage('GLOBALS', 'SERVER_ERROR')
+            message: getResponseMessage('GLOBALS', 'SERVER_ERROR')
         }, null, 500);
     }
     finally {
@@ -100,7 +100,7 @@ User.findByUID = async (uid, callback) => {
     } catch (e) {
         callback({
             error: 'SERVER_ERROR',
-            message: getErrorMessage('GLOBALS', 'SERVER_ERROR')
+            message: getResponseMessage('GLOBALS', 'SERVER_ERROR')
         }, null, 500);
     }
     finally {
@@ -117,12 +117,23 @@ User.update = async (uid, newCustomer, callback) => {
     newCustomer.updatedAt = Math.floor(+new Date() / 1000);
 
     try {
-        const [rows] = await connection.query(sql, ['users', newCustomer, uid]);
-        callback(null, { ...newCustomer }, 201);
+        const [result] = await connection.query(sql, ['users', newCustomer, uid]);
+
+        if (result['affectedRows']) {
+            const getUser = queryBuilder(APIs.USERS.CURRENT, {});
+            const [rows] = await connection.query(getUser, ['users', uid]);
+            callback(null, rows);
+        } else {
+            callback({
+                error: 'ER_USER_NOT_FOUND',
+                message: getResponseMessage('USERS', 'ER_USER_NOT_FOUND', uid)
+            }, null, 404);
+        }
     } catch (e) {
+        console.log(e);
         callback({
             error: 'SERVER_ERROR',
-            message: getErrorMessage('GLOBALS', 'SERVER_ERROR')
+            message: getResponseMessage('GLOBALS', 'SERVER_ERROR')
         }, null, 500);
     }
     finally {
@@ -133,26 +144,26 @@ User.update = async (uid, newCustomer, callback) => {
 User.delete = async (uid, callback) => {
     const connection = await connectionPool.getConnection();
 
-    const sql = queryBuilder(APIs.USERS.CURRENT, {});
+    const sql = queryBuilder(APIs.USERS.DELETE, {});
 
     try {
-        const [rows] = await connection.query(sql, ['users', uid]);
+        const [result] = await connection.query(sql, ['users', uid]);
 
-        if (rows.length) {
-            const sql = queryBuilder(APIs.USERS.DELETE, {});
-            await connection.query(sql, ['users', uid]);
-
-            callback(null, rows, 204);
+        if (result['affectedRows']) {
+            callback(null, {
+                success: true,
+                message: getResponseMessage('USERS', 'MSG_USER_DELETED', uid)
+            });
         } else {
             callback({
                 error: 'ER_USER_NOT_FOUND',
-                message: getErrorMessage('USERS', 'ER_USER_NOT_FOUND', uid)
+                message: getResponseMessage('USERS', 'ER_USER_NOT_FOUND', uid)
             }, null, 404);
         }
     } catch (e) {
         callback({
             error: 'SERVER_ERROR',
-            message: getErrorMessage('GLOBALS', 'SERVER_ERROR')
+            message: getResponseMessage('GLOBALS', 'SERVER_ERROR')
         }, null, 500);
     }
     finally {

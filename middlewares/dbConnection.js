@@ -1,11 +1,11 @@
 const mysql = require('mysql2');
-const { getErrorMessage } = require('../helpers/errorMessage');
+const { getResponseMessage } = require('../helpers/responseMessage');
 
 exports.openConnection = async (req, res, next) => {
     if (!req.headers['app_id']) {
         return res.status(400).send({
             error: 'BAD_REQUEST',
-            message: getErrorMessage('APP', 'BAD_REQUEST')
+            message: getResponseMessage('APP', 'BAD_REQUEST')
         });
     }
     const ON_DEMAND_DB = req.headers['app_id'];
@@ -29,7 +29,7 @@ exports.openConnection = async (req, res, next) => {
         console.error(err);
         res.status(404).json({
             error: 'NOT_FOUND',
-            message: getErrorMessage('APP', 'NOT_FOUND', ON_DEMAND_DB)
+            message: getResponseMessage('APP', 'NOT_FOUND', ON_DEMAND_DB)
         });
     }
 };
