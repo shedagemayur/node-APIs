@@ -1,6 +1,7 @@
-const users = require('../../controllers/user.controller');
 const express = require('express');
 const { check, validationResult } = require('express-validator');
+const users = require('../../controllers/user.controller');
+
 const router = express.Router();
 
 module.exports = (app) => {

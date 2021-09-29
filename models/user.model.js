@@ -1,6 +1,6 @@
 const APIs = require('../constants/apis');
 const queryBuilder = require('../helpers/queryBuilder');
-const { getResponseMessage } = require('../helpers/responseMessage');
+const { responseText } = require('../helpers/responseProcessor');
 
 function User(user) {
     this.uid = user.uid;
@@ -21,18 +21,6 @@ function User(user) {
     this.statusMessage = user.statusMessage;
 }
 
-User.validate = (requiredProperties, newCustomer) => {
-    for (var i = 0; i < Object.keys(newCustomer).length; i++) {
-        if (newCustomer.hasOwnProperty(requiredProperties[i]) && newCustomer[requiredProperties[i]] === undefined || newCustomer[requiredProperties[i]] == '') {
-            return {
-                error: 'ER_MISSING_FIELD',
-                message: getResponseMessage('GLOBALS', 'ER_MISSING_FIELD', requiredProperties[i])
-            };
-        }
-    }
-    return false;
-};
-
 User.create = async (newCustomer, callback) => {
     Object.keys(newCustomer).forEach((key) => newCustomer[key] === undefined && delete newCustomer[key]);
 
@@ -48,12 +36,12 @@ User.create = async (newCustomer, callback) => {
         if (typeof (e) == 'object' && e.hasOwnProperty('code') && e.code == 'ER_DUP_ENTRY') {
             callback({
                 error: 'ER_DUP_ENTRY',
-                message: getResponseMessage('USERS', 'ER_DUP_ENTRY', newCustomer.uid)
+                message: responseText('USERS', 'ER_DUP_ENTRY', newCustomer.uid)
             }, null, 409);
         } else {
             callback({
                 error: 'SERVER_ERROR',
-                message: getResponseMessage('GLOBALS', 'SERVER_ERROR')
+                message: responseText('GLOBALS', 'SERVER_ERROR')
             }, null, 500);
         }
     }
@@ -79,7 +67,7 @@ User.getAll = async (pageNo, callback) => {
     } catch (e) {
         callback({
             error: 'SERVER_ERROR',
-            message: getResponseMessage('GLOBALS', 'SERVER_ERROR')
+            message: responseText('GLOBALS', 'SERVER_ERROR')
         }, null, 500);
     }
     finally {
@@ -100,7 +88,7 @@ User.findByUID = async (uid, callback) => {
     } catch (e) {
         callback({
             error: 'SERVER_ERROR',
-            message: getResponseMessage('GLOBALS', 'SERVER_ERROR')
+            message: responseText('GLOBALS', 'SERVER_ERROR')
         }, null, 500);
     }
     finally {
@@ -126,14 +114,14 @@ User.update = async (uid, newCustomer, callback) => {
         } else {
             callback({
                 error: 'ER_USER_NOT_FOUND',
-                message: getResponseMessage('USERS', 'ER_USER_NOT_FOUND', uid)
+                message: responseText('USERS', 'ER_USER_NOT_FOUND', uid)
             }, null, 404);
         }
     } catch (e) {
         console.log(e);
         callback({
             error: 'SERVER_ERROR',
-            message: getResponseMessage('GLOBALS', 'SERVER_ERROR')
+            message: responseText('GLOBALS', 'SERVER_ERROR')
         }, null, 500);
     }
     finally {
@@ -152,23 +140,35 @@ User.delete = async (uid, callback) => {
         if (result['affectedRows']) {
             callback(null, {
                 success: true,
-                message: getResponseMessage('USERS', 'MSG_USER_DELETED', uid)
+                message: responseText('USERS', 'MSG_USER_DELETED', uid)
             });
         } else {
             callback({
                 error: 'ER_USER_NOT_FOUND',
-                message: getResponseMessage('USERS', 'ER_USER_NOT_FOUND', uid)
+                message: responseText('USERS', 'ER_USER_NOT_FOUND', uid)
             }, null, 404);
         }
     } catch (e) {
         callback({
             error: 'SERVER_ERROR',
-            message: getResponseMessage('GLOBALS', 'SERVER_ERROR')
+            message: responseText('GLOBALS', 'SERVER_ERROR')
         }, null, 500);
     }
     finally {
         connection.release();
     }
+};
+
+User.validate = (requiredProperties, newCustomer) => {
+    for (var i = 0; i < Object.keys(newCustomer).length; i++) {
+        if (newCustomer.hasOwnProperty(requiredProperties[i]) && newCustomer[requiredProperties[i]] === undefined || newCustomer[requiredProperties[i]] == '') {
+            return {
+                error: 'ER_MISSING_FIELD',
+                message: responseText('GLOBALS', 'ER_MISSING_FIELD', requiredProperties[i])
+            };
+        }
+    }
+    return false;
 };
 
 module.exports = User;

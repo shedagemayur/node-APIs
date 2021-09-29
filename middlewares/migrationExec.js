@@ -1,5 +1,5 @@
 const { exec } = require("child_process");
-const { getResponseMessage } = require('../helpers/responseMessage');
+const { responseText } = require('../helpers/responseProcessor');
 const Redis = require('redis');
 
 exports.execute = async (req, res, next) => {
@@ -37,7 +37,7 @@ exports.execute = async (req, res, next) => {
                 console.log(e);
                 res.status(500).send({
                     error: 'SERVER_ERROR',
-                    message: getResponseMessage('USERS', 'SERVER_ERROR')
+                    message: responseText('USERS', 'SERVER_ERROR')
                 });
             }
             finally {
