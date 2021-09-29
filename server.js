@@ -4,6 +4,7 @@ const express = require('express');
 const cors = require('cors');
 const database = require('./middlewares/dbConnection');
 const migration = require('./middlewares/migrationExec');
+const path = require('path');
 
 const app = express();
 
@@ -23,6 +24,7 @@ app.use((req, res, next) => {
         require('./routes/' + routePath.split('/')[1] + '/' + routePath.split('/')[2] + '.route')(app);
         next();
     } catch (error) {
+        console.log(error);
         res.status(404).send('Request URL not found');
     }
 });

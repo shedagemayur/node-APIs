@@ -10,8 +10,9 @@ exports.Messages = (params) => {
         },
         GLOBALS: {
             'SERVER_ERROR': `Internal server error.`,
-            'ER_MISSING_FIELD': `${params} field is required.`,
-            'ER_EMPTY_FIELD': `${params} field can't be empty.`
+            'ER_MISSING_FIELD': `${params} field is required and can't be empty.`,
+            'ER_EMPTY_FIELD': `${params} field can't be empty.`,
+            'ER_EMPTY_CONTENT': `Content body can't be empty`
         }
     }
 }
