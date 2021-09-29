@@ -1,7 +1,7 @@
-const users = require('../database/queries/_users.sql');
+const queryBuilder = (tblname, key, params = {}) => {
+    const table = require('../database/queries/_' + tblname + '.sql');
 
-const queryBuilder = (key, params = {}) => {
-    let sql = users[key];
+    let sql = table[key];
 
     if (params !== null) {
         Object.keys(params).forEach(key => {

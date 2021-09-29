@@ -2,9 +2,9 @@ require('dotenv').config();
 
 const express = require('express');
 const cors = require('cors');
-const database = require('./middlewares/dbConnection');
-const migration = require('./middlewares/migrationExec');
-const path = require('path');
+const database = require('./middlewares/connection.db');
+const migration = require('./middlewares/migration.exec');
+const { header, validationResult } = require('express-validator');
 
 const app = express();
 
@@ -14,7 +14,21 @@ app.use(express.urlencoded({
     limit: '50mb',
     extended: true
 }));
-app.use(database.openConnection);
+app.use(
+    [
+        header(['app_id']).not().isEmpty()
+    ],
+    (req, res, next) => {
+        const errors = validationResult(req);
+        if (!errors.isEmpty()) {
+            return res.status(400).json({
+                error: 'ER_BAD_REQUEST',
+                details: errors.mapped()
+            });
+        }
+        next();
+    }, database.openConnection);
+
 app.use(migration.execute);
 
 app.use((req, res, next) => {

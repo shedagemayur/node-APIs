@@ -25,7 +25,7 @@ User.create = async (newCustomer, callback) => {
     Object.keys(newCustomer).forEach((key) => newCustomer[key] === undefined && delete newCustomer[key]);
 
     const connection = await connectionPool.getConnection();
-    const sql = queryBuilder(APIs.USERS.CREATE, {});
+    const sql = queryBuilder('users', APIs.USERS.CREATE, {});
 
     newCustomer.createdAt = newCustomer.updatedAt = Math.floor(+new Date() / 1000);
 
@@ -36,12 +36,12 @@ User.create = async (newCustomer, callback) => {
         if (typeof (e) == 'object' && e.hasOwnProperty('code') && e.code == 'ER_DUP_ENTRY') {
             callback({
                 error: 'ER_DUP_ENTRY',
-                message: responseText('USERS', 'ER_DUP_ENTRY', newCustomer.uid)
+                details: responseText('USERS', 'ER_DUP_ENTRY', newCustomer.uid)
             }, null, 409);
         } else {
             callback({
                 error: 'SERVER_ERROR',
-                message: responseText('GLOBALS', 'SERVER_ERROR')
+                details: responseText('GLOBALS', 'SERVER_ERROR')
             }, null, 500);
         }
     }
@@ -57,7 +57,7 @@ User.getAll = async (pageNo, callback) => {
 
     const connection = await connectionPool.getConnection();
 
-    const sql = queryBuilder(APIs.USERS.LIST, {
+    const sql = queryBuilder('users', APIs.USERS.LIST, {
         'startAt': connection.escape(startAt),
         'perPage': connection.escape(perPage)
     });
@@ -67,7 +67,7 @@ User.getAll = async (pageNo, callback) => {
     } catch (e) {
         callback({
             error: 'SERVER_ERROR',
-            message: responseText('GLOBALS', 'SERVER_ERROR')
+            details: responseText('GLOBALS', 'SERVER_ERROR')
         }, null, 500);
     }
     finally {
@@ -78,17 +78,20 @@ User.getAll = async (pageNo, callback) => {
 User.findByUID = async (uid, callback) => {
     const connection = await connectionPool.getConnection();
 
-    const sql = queryBuilder(APIs.USERS.CURRENT, {});
+    const sql = queryBuilder('users', APIs.USERS.CURRENT, {});
 
     try {
         const [rows] = await connection.query(sql, ['users', uid]);
         if (rows.length) return callback(null, rows);
 
-        callback(null, rows, 404);
+        callback(null, {
+            error: 'ER_USER_NOT_FOUND',
+            details: responseText('USERS', 'ER_USER_NOT_FOUND', uid)
+        }, 404);
     } catch (e) {
         callback({
             error: 'SERVER_ERROR',
-            message: responseText('GLOBALS', 'SERVER_ERROR')
+            details: responseText('GLOBALS', 'SERVER_ERROR')
         }, null, 500);
     }
     finally {
@@ -100,7 +103,7 @@ User.update = async (uid, newCustomer, callback) => {
     Object.keys(newCustomer).forEach((key) => newCustomer[key] === undefined && delete newCustomer[key]);
 
     const connection = await connectionPool.getConnection();
-    const sql = queryBuilder(APIs.USERS.UPDATE, {});
+    const sql = queryBuilder('users', APIs.USERS.UPDATE, {});
 
     newCustomer.updatedAt = Math.floor(+new Date() / 1000);
 
@@ -108,20 +111,20 @@ User.update = async (uid, newCustomer, callback) => {
         const [result] = await connection.query(sql, ['users', newCustomer, uid]);
 
         if (result['affectedRows']) {
-            const getUser = queryBuilder(APIs.USERS.CURRENT, {});
+            const getUser = queryBuilder('users', APIs.USERS.CURRENT, {});
             const [rows] = await connection.query(getUser, ['users', uid]);
             callback(null, rows);
         } else {
             callback({
                 error: 'ER_USER_NOT_FOUND',
-                message: responseText('USERS', 'ER_USER_NOT_FOUND', uid)
+                details: responseText('USERS', 'ER_USER_NOT_FOUND', uid)
             }, null, 404);
         }
     } catch (e) {
         console.log(e);
         callback({
             error: 'SERVER_ERROR',
-            message: responseText('GLOBALS', 'SERVER_ERROR')
+            details: responseText('GLOBALS', 'SERVER_ERROR')
         }, null, 500);
     }
     finally {
@@ -132,7 +135,7 @@ User.update = async (uid, newCustomer, callback) => {
 User.delete = async (uid, callback) => {
     const connection = await connectionPool.getConnection();
 
-    const sql = queryBuilder(APIs.USERS.DELETE, {});
+    const sql = queryBuilder('users', APIs.USERS.DELETE, {});
 
     try {
         const [result] = await connection.query(sql, ['users', uid]);
@@ -140,18 +143,18 @@ User.delete = async (uid, callback) => {
         if (result['affectedRows']) {
             callback(null, {
                 success: true,
-                message: responseText('USERS', 'MSG_USER_DELETED', uid)
+                details: responseText('USERS', 'MSG_USER_DELETED', uid)
             });
         } else {
             callback({
                 error: 'ER_USER_NOT_FOUND',
-                message: responseText('USERS', 'ER_USER_NOT_FOUND', uid)
+                details: responseText('USERS', 'ER_USER_NOT_FOUND', uid)
             }, null, 404);
         }
     } catch (e) {
         callback({
             error: 'SERVER_ERROR',
-            message: responseText('GLOBALS', 'SERVER_ERROR')
+            details: responseText('GLOBALS', 'SERVER_ERROR')
         }, null, 500);
     }
     finally {
@@ -164,7 +167,7 @@ User.validate = (requiredProperties, newCustomer) => {
         if (newCustomer.hasOwnProperty(requiredProperties[i]) && newCustomer[requiredProperties[i]] === undefined || newCustomer[requiredProperties[i]] == '') {
             return {
                 error: 'ER_MISSING_FIELD',
-                message: responseText('GLOBALS', 'ER_MISSING_FIELD', requiredProperties[i])
+                details: responseText('GLOBALS', 'ER_MISSING_FIELD', requiredProperties[i])
             };
         }
     }
