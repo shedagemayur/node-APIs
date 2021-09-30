@@ -1,9 +1,9 @@
 const queries = {
-    'getToken': `SELECT * FROM ?? WHERE authToken = ?`,
-    'listTokens': `SELECT * FROM ?? LIMIT <<startAt>>, <<perPage>>`,
-    'createToken': `INSERT INTO ?? SET ?`,
-    'deleteToken': `DELETE FROM ?? WHERE authToken = ?`,
-    'updateToken': `UPDATE ?? SET ? WHERE authToken = ?`,
+    FIND: `SELECT * FROM ?? WHERE authToken = ?`,
+    LIST: `SELECT * FROM ?? LIMIT <<startAt>>, <<perPage>>`,
+    CREATE: `INSERT INTO ?? SET ?`,
+    UPDATE: `UPDATE ?? SET ? WHERE authToken = ?`,
+    DELETE: `DELETE FROM ?? WHERE authToken = ?`,
 }
 
 module.exports = queries;

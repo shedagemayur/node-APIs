@@ -9,6 +9,10 @@ exports.Messages = (params) => {
             'ER_USER_NOT_FOUND': `User with uid ${params} doesn't exists.`,
             'MSG_USER_DELETED': `User ${params} was deleted successfully.`,
         },
+        API_KEY: {
+            'ER_API_KEY_NOT_FOUND': `Api key ${params} doesn't exists.`,
+            'MSG_API_KEY_DELETED': `Api key ${params} was deleted successfully.`,
+        },
         AUTH_TOKENS: {
             'ER_TOKEN_NOT_FOUND': `Auth token ${params} doesn't exists.`,
             'MSG_TOKEN_DELETED': `Auth token ${params} was deleted successfully.`,

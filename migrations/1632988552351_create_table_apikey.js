@@ -19,7 +19,7 @@ module.exports = {
             );
 
             await connection.promise().query(
-                "INSERT INTO `apikeys` VALUES ('5cba85b5e919387c2f33e85f05dd7a68ead9bcd9','Rest API Key','fullAccess','app_system',1629373583,1629373583,NULL),('7077ee7bbe984cfa03f4d45274c70ca074e1645e','Auth Key','authOnly','app_system',1629373583,1629373583,NULL),('76e8ce14ebf31c2024dd40558207d71459423808','DA_192292e8424f8d89_1656','dashboardAccess','app_system',1629373583,1629373583,NULL);"
+                "INSERT INTO `apikeys` VALUES ('d027ffb7a626ed5ae7ddf186efa1ed3ccba3ada6','Rest API Key','fullAccess','app_system',1629373583,1629373583,NULL),('a1b645f71f6a2db92a656c618abd133c60e0176d','Auth Key','authOnly','app_system',1629373583,1629373583,NULL),('dc91d60278e49d98d11ace6eb194b0182e129ddf','DA_192292e8424f8d89_1656','dashboardAccess','app_system',1629373583,1629373583,NULL);"
             );
         } catch (error) {
             console.log(error);

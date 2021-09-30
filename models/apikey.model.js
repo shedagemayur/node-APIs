@@ -1,30 +1,29 @@
+const crypto = require('crypto');
 const queryBuilder = require('../helpers/queryBuilder');
 const { responseText } = require('../helpers/responseProcessor');
 
-function AuthToken(user) {
-    this.authToken = user.authToken;
-    this.uid = user.uid;
-    this.deviceId = user.deviceId;
-    this.apiKey = user.apiKey;
-    this.plateform = user.plateform;
-    this.userAgent = user.userAgent;
-    this.appInfo = user.appInfo;
-    this.createdAt = user.createdAt;
-    this.updatedAt = user.updatedAt;
-    this.deletedAt = user.deletedAt;
+function APIKey(apikey) {
+    this.name = apikey.name;
+    this.scope = apikey.scope;
+    this.apiKey = apikey.apiKey;
+    this.createdBy = apikey.createdBy;
+    this.createdAt = apikey.createdAt;
+    this.updatedAt = apikey.updatedAt;
+    this.deletedAt = apikey.deletedAt;
 }
 
-AuthToken.create = async (newAuthToken, callback) => {
-    Object.keys(newAuthToken).forEach((key) => newAuthToken[key] === undefined && delete newAuthToken[key]);
+APIKey.create = async (newAPIKey, callback) => {
+    Object.keys(newAPIKey).forEach((key) => newAPIKey[key] === undefined && delete newAPIKey[key]);
 
     const connection = await connectionPool.getConnection();
-    const sql = queryBuilder('auth_tokens', 'CREATE', {});
+    const sql = queryBuilder('apikeys', 'CREATE', {});
 
-    newAuthToken.createdAt = newAuthToken.updatedAt = Math.floor(+new Date() / 1000);
+    newAPIKey.apiKey = crypto.createHash('sha1').update(crypto.randomBytes(64).toString('hex')).digest('hex');
+    newAPIKey.createdAt = newAPIKey.updatedAt = Math.floor(+new Date() / 1000);
 
     try {
-        await connection.query(sql, ['auth_tokens', newAuthToken]);
-        callback(null, { ...newAuthToken }, 201);
+        await connection.query(sql, ['apikeys', newAPIKey]);
+        callback(null, { ...newAPIKey }, 201);
     } catch (e) {
         callback({
             error: 'SERVER_ERROR',
@@ -36,19 +35,19 @@ AuthToken.create = async (newAuthToken, callback) => {
     }
 };
 
-AuthToken.getAll = async (pageNo, callback) => {
+APIKey.getAll = async (pageNo, callback) => {
     const perPage = 10;
     const page = pageNo == null ? 1 : pageNo;
     const startAt = perPage * (page - 1);
 
     const connection = await connectionPool.getConnection();
 
-    const sql = queryBuilder('auth_tokens', 'LIST', {
+    const sql = queryBuilder('apikeys', 'LIST', {
         'startAt': connection.escape(startAt),
         'perPage': connection.escape(perPage)
     });
     try {
-        const [rows] = await connection.query(sql, ['auth_tokens']);
+        const [rows] = await connection.query(sql, ['apikeys']);
         callback(null, rows);
     } catch (e) {
         callback({
@@ -61,13 +60,13 @@ AuthToken.getAll = async (pageNo, callback) => {
     }
 };
 
-AuthToken.findByToken = async (token, callback) => {
+APIKey.findByKey = async (apikey, callback) => {
     const connection = await connectionPool.getConnection();
 
-    const sql = queryBuilder('auth_tokens', 'FIND', {});
+    const sql = queryBuilder('apikeys', 'FIND', {});
 
     try {
-        const [rows] = await connection.query(sql, ['auth_tokens', token]);
+        const [rows] = await connection.query(sql, ['apikeys', apikey]);
         if (rows.length) return callback(null, rows);
 
         callback(null, rows, 404);
@@ -83,25 +82,25 @@ AuthToken.findByToken = async (token, callback) => {
     }
 };
 
-AuthToken.update = async (token, newAuthToken, callback) => {
-    Object.keys(newAuthToken).forEach((key) => newAuthToken[key] === undefined && delete newAuthToken[key]);
+APIKey.update = async (apikey, newAPIKey, callback) => {
+    Object.keys(newAPIKey).forEach((key) => newAPIKey[key] === undefined && delete newAPIKey[key]);
 
     const connection = await connectionPool.getConnection();
-    const sql = queryBuilder('auth_tokens', 'UPDATE', {});
+    const sql = queryBuilder('apikeys', 'UPDATE', {});
 
-    newAuthToken.updatedAt = Math.floor(+new Date() / 1000);
+    newAPIKey.updatedAt = Math.floor(+new Date() / 1000);
 
     try {
-        const [result] = await connection.query(sql, ['auth_tokens', newAuthToken, token]);
+        const [result] = await connection.query(sql, ['apikeys', newAPIKey, apikey]);
 
         if (result['affectedRows']) {
-            const getToken = queryBuilder('auth_tokens', 'FIND', {});
-            const [rows] = await connection.query(getToken, ['auth_tokens', token]);
+            const getToken = queryBuilder('apikeys', 'FIND', {});
+            const [rows] = await connection.query(getToken, ['apikeys', apikey]);
             callback(null, rows);
         } else {
             callback({
-                error: 'ER_TOKEN_NOT_FOUND',
-                details: responseText('AUTH_TOKENS', 'ER_TOKEN_NOT_FOUND', token)
+                error: 'ER_API_KEY_NOT_FOUND',
+                details: responseText('API_KEY', 'ER_API_KEY_NOT_FOUND', apikey)
             }, null, 404);
         }
     } catch (e) {
@@ -116,23 +115,23 @@ AuthToken.update = async (token, newAuthToken, callback) => {
     }
 };
 
-AuthToken.delete = async (token, callback) => {
+APIKey.delete = async (apikey, callback) => {
     const connection = await connectionPool.getConnection();
 
-    const sql = queryBuilder('auth_tokens', 'DELETE', {});
+    const sql = queryBuilder('apikeys', 'DELETE', {});
 
     try {
-        const [result] = await connection.query(sql, ['auth_tokens', token]);
+        const [result] = await connection.query(sql, ['apikeys', apikey]);
 
         if (result['affectedRows']) {
             callback(null, {
                 success: true,
-                details: responseText('AUTH_TOKEN', 'MSG_TOKEN_DELETED', token)
+                details: responseText('API_KEY', 'MSG_API_KEY_DELETED', apikey)
             });
         } else {
             callback({
-                error: 'ER_TOKEN_NOT_FOUND',
-                details: responseText('AUTH_TOKEN', 'ER_TOKEN_NOT_FOUND', token)
+                error: 'ER_API_KEY_NOT_FOUND',
+                details: responseText('API_KEY', 'ER_API_KEY_NOT_FOUND', apikey)
             }, null, 404);
         }
     } catch (e) {
@@ -146,4 +145,4 @@ AuthToken.delete = async (token, callback) => {
     }
 };
 
-module.exports = AuthToken;
+module.exports = APIKey;

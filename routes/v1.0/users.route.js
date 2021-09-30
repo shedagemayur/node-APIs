@@ -54,5 +54,5 @@ module.exports = (app) => {
         )
         .delete(authTokens.checkUserExists, authTokens.delete)
 
-    app.use('/v1/users', router);
+    app.use('/v1.0/users', router);
 }

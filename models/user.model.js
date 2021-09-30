@@ -1,4 +1,3 @@
-const APIs = require('../constants/apis');
 const queryBuilder = require('../helpers/queryBuilder');
 const { responseText } = require('../helpers/responseProcessor');
 
@@ -25,7 +24,7 @@ User.create = async (newCustomer, callback) => {
     Object.keys(newCustomer).forEach((key) => newCustomer[key] === undefined && delete newCustomer[key]);
 
     const connection = await connectionPool.getConnection();
-    const sql = queryBuilder('users', APIs.USERS.CREATE, {});
+    const sql = queryBuilder('users', 'CREATE', {});
 
     newCustomer.createdAt = newCustomer.updatedAt = Math.floor(+new Date() / 1000);
 
@@ -57,7 +56,7 @@ User.getAll = async (pageNo, callback) => {
 
     const connection = await connectionPool.getConnection();
 
-    const sql = queryBuilder('users', APIs.USERS.LIST, {
+    const sql = queryBuilder('users', 'LIST', {
         'startAt': connection.escape(startAt),
         'perPage': connection.escape(perPage)
     });
@@ -78,7 +77,7 @@ User.getAll = async (pageNo, callback) => {
 User.findByUID = async (uid, callback) => {
     const connection = await connectionPool.getConnection();
 
-    const sql = queryBuilder('users', APIs.USERS.CURRENT, {});
+    const sql = queryBuilder('users', 'FIND', {});
 
     try {
         const [rows] = await connection.query(sql, ['users', uid]);
@@ -103,7 +102,7 @@ User.update = async (uid, newCustomer, callback) => {
     Object.keys(newCustomer).forEach((key) => newCustomer[key] === undefined && delete newCustomer[key]);
 
     const connection = await connectionPool.getConnection();
-    const sql = queryBuilder('users', APIs.USERS.UPDATE, {});
+    const sql = queryBuilder('users', 'UPDATE', {});
 
     newCustomer.updatedAt = Math.floor(+new Date() / 1000);
 
@@ -111,7 +110,7 @@ User.update = async (uid, newCustomer, callback) => {
         const [result] = await connection.query(sql, ['users', newCustomer, uid]);
 
         if (result['affectedRows']) {
-            const getUser = queryBuilder('users', APIs.USERS.CURRENT, {});
+            const getUser = queryBuilder('users', 'FIND', {});
             const [rows] = await connection.query(getUser, ['users', uid]);
             callback(null, rows);
         } else {
@@ -135,7 +134,7 @@ User.update = async (uid, newCustomer, callback) => {
 User.delete = async (uid, callback) => {
     const connection = await connectionPool.getConnection();
 
-    const sql = queryBuilder('users', APIs.USERS.DELETE, {});
+    const sql = queryBuilder('users', 'DELETE', {});
 
     try {
         const [result] = await connection.query(sql, ['users', uid]);

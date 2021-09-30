@@ -1,7 +1,7 @@
-const queryBuilder = (tblname, key, params = {}) => {
+const queryBuilder = (tblname, method, params = {}) => {
     const table = require('../database/queries/_' + tblname + '.sql');
 
-    let sql = table[key];
+    let sql = table[method];
 
     if (params !== null) {
         Object.keys(params).forEach(key => {
