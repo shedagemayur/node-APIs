@@ -4,7 +4,8 @@ const express = require('express');
 const cors = require('cors');
 const database = require('./middlewares/connection.db');
 const migration = require('./middlewares/migration.exec');
-const { header, validationResult } = require('express-validator');
+const validator = require('./middlewares/request.validate');
+const { header } = require('express-validator');
 
 const app = express();
 
@@ -18,17 +19,9 @@ app.use(
     [
         header(['app_id']).not().isEmpty()
     ],
-    (req, res, next) => {
-        const errors = validationResult(req);
-        if (!errors.isEmpty()) {
-            return res.status(400).json({
-                error: 'ER_BAD_REQUEST',
-                details: errors.mapped()
-            });
-        }
-        next();
-    }, database.openConnection);
-
+    validator.showError,
+    database.openConnection
+);
 app.use(migration.execute);
 
 app.use((req, res, next) => {
