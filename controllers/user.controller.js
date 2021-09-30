@@ -1,35 +1,35 @@
-const User = require('../models/user.model');
+const UserSchema = require('../models/user.model');
 const { sendResponse } = require('../helpers/responseProcessor');
 
 exports.create = (req, res) => {
-    const user = new User(req.body);
+    const user = new UserSchema(req.body);
 
-    User.create(user, (err, data, statusCode = 200) => {
+    UserSchema.create(user, (err, data, statusCode = 200) => {
         sendResponse(res, err, data, statusCode);
     });
 };
 
 exports.findAll = (req, res) => {
-    User.getAll(req.query.page, (err, data, statusCode = 200) => {
+    UserSchema.getAll(req.query.page, (err, data, statusCode = 200) => {
         sendResponse(res, err, data, statusCode);
     });
 };
 
 exports.findOne = (req, res) => {
-    User.findByUID(req.params.uid, (err, data, statusCode = 200) => {
+    UserSchema.findByUID(req.params.uid, (err, data, statusCode = 200) => {
         sendResponse(res, err, data, statusCode);
     });
 };
 
 exports.update = (req, res) => {
-    const user = new User(req.body);
-    User.update(req.params.uid, user, (err, data, statusCode = 200) => {
+    const user = new UserSchema(req.body);
+    UserSchema.update(req.params.uid, user, (err, data, statusCode = 200) => {
         sendResponse(res, err, data, statusCode);
     });
 };
 
 exports.delete = (req, res) => {
-    User.delete(req.params.uid, (err, data, statusCode = 200) => {
+    UserSchema.delete(req.params.uid, (err, data, statusCode = 200) => {
         sendResponse(res, err, data, statusCode);
     });
 };

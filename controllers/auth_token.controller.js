@@ -1,4 +1,4 @@
-const User = require('../models/user.model');
+const UserSchema = require('../models/user.model');
 const AuthToken = require('../models/auth_token.model');
 const { sendResponse } = require('../helpers/responseProcessor');
 
@@ -36,7 +36,7 @@ exports.delete = (req, res) => {
 };
 
 exports.checkUserExists = (req, res, next) => {
-    User.findByUID(req.params.uid, (err, data, statusCode = 200) => {
+    UserSchema.findByUID(req.params.uid, (err, data, statusCode = 200) => {
         if (err) sendResponse(res, err, data, statusCode);
         if (data && data.length) next();
     });

@@ -1,7 +1,20 @@
 const queryBuilder = require('../helpers/queryBuilder');
 const { responseText } = require('../helpers/responseProcessor');
 
-function User(user) {
+const UserResponse = function (user) {
+    this.uid = user.uid;
+    this.name = user.name;
+    this.role = user.role;
+    this.avatar = user.avatar;
+    this.createdAt = user.createdAt;
+}
+
+const UpdateUserResponse = function (user) {
+    UserResponse.call(this, user);
+    this.updatedAt = user.updatedAt;
+}
+
+const UserSchema = function (user) {
     this.uid = user.uid;
     this.name = user.name;
     this.link = user.link;
@@ -20,7 +33,7 @@ function User(user) {
     this.statusMessage = user.statusMessage;
 }
 
-User.create = async (newCustomer, callback) => {
+UserSchema.create = async (newCustomer, callback) => {
     Object.keys(newCustomer).forEach((key) => newCustomer[key] === undefined && delete newCustomer[key]);
 
     const connection = await connectionPool.getConnection();
@@ -29,8 +42,14 @@ User.create = async (newCustomer, callback) => {
     newCustomer.createdAt = newCustomer.updatedAt = Math.floor(+new Date() / 1000);
 
     try {
-        await connection.query(sql, ['users', newCustomer]);
-        callback(null, { ...newCustomer }, 201);
+        const [result] = await connection.query(sql, ['users', newCustomer]);
+
+        if (result['affectedRows']) {
+            const getUser = queryBuilder('users', 'FIND', {});
+            const [rows] = await connection.query(getUser, ['users', uid]);
+
+            callback(null, { data: new UserResponse(rows[0]) }, 201);
+        }
     } catch (e) {
         if (typeof (e) == 'object' && e.hasOwnProperty('code') && e.code == 'ER_DUP_ENTRY') {
             callback({
@@ -49,7 +68,7 @@ User.create = async (newCustomer, callback) => {
     }
 };
 
-User.getAll = async (pageNo, callback) => {
+UserSchema.getAll = async (pageNo, callback) => {
     const perPage = 10;
     const page = pageNo == null ? 1 : pageNo;
     const startAt = perPage * (page - 1);
@@ -74,14 +93,14 @@ User.getAll = async (pageNo, callback) => {
     }
 };
 
-User.findByUID = async (uid, callback) => {
+UserSchema.findByUID = async (uid, callback) => {
     const connection = await connectionPool.getConnection();
 
     const sql = queryBuilder('users', 'FIND', {});
 
     try {
         const [rows] = await connection.query(sql, ['users', uid]);
-        if (rows.length) return callback(null, rows);
+        if (rows.length) return callback(null, { data: new UserResponse(rows[0]) });
 
         callback({
             error: 'ER_USER_NOT_FOUND',
@@ -98,7 +117,7 @@ User.findByUID = async (uid, callback) => {
     }
 };
 
-User.update = async (uid, newCustomer, callback) => {
+UserSchema.update = async (uid, newCustomer, callback) => {
     Object.keys(newCustomer).forEach((key) => newCustomer[key] === undefined && delete newCustomer[key]);
 
     const connection = await connectionPool.getConnection();
@@ -112,7 +131,7 @@ User.update = async (uid, newCustomer, callback) => {
         if (result['affectedRows']) {
             const getUser = queryBuilder('users', 'FIND', {});
             const [rows] = await connection.query(getUser, ['users', uid]);
-            callback(null, rows);
+            callback(null, { data: new UpdateUserResponse(rows[0]) });
         } else {
             callback({
                 error: 'ER_USER_NOT_FOUND',
@@ -131,7 +150,7 @@ User.update = async (uid, newCustomer, callback) => {
     }
 };
 
-User.delete = async (uid, callback) => {
+UserSchema.delete = async (uid, callback) => {
     const connection = await connectionPool.getConnection();
 
     const sql = queryBuilder('users', 'DELETE', {});
@@ -161,7 +180,7 @@ User.delete = async (uid, callback) => {
     }
 };
 
-User.validate = (requiredProperties, newCustomer) => {
+UserSchema.validate = (requiredProperties, newCustomer) => {
     for (var i = 0; i < Object.keys(newCustomer).length; i++) {
         if (newCustomer.hasOwnProperty(requiredProperties[i]) && newCustomer[requiredProperties[i]] === undefined || newCustomer[requiredProperties[i]] == '') {
             return {
@@ -173,5 +192,5 @@ User.validate = (requiredProperties, newCustomer) => {
     return false;
 };
 
-module.exports = User;
+module.exports = UserSchema;
 
