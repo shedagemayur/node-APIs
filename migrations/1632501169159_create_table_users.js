@@ -5,7 +5,7 @@ module.exports = {
         + " `link` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,"
         + " `role` varchar(50) COLLATE utf8mb4_unicode_ci DEFAULT NULL,"
         + " `status` enum('available','busy','away','offline','invisible') COLLATE utf8mb4_unicode_ci NOT NULL"
-        + " DEFAULT 'offline',"
+        + "  DEFAULT 'offline',"
         + " `lastActiveAt` int DEFAULT NULL,"
         + " `statusMessage` text COLLATE utf8mb4_unicode_ci,"
         + " `metadata` json DEFAULT NULL,"
@@ -31,5 +31,5 @@ module.exports = {
         + " KEY `users_status_name_uid_updatedat_index` (`status`,`name`,`uid`,`updatedAt`),"
         + " FULLTEXT KEY `users_name_ft_idx` (`name`)"
         + " ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci",
-    "down": "DROP table users"
+    "down": "DROP TABLE `users`;"
 }

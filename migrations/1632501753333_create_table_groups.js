@@ -21,5 +21,5 @@ module.exports = {
         + " KEY `groups_updatedby_index` (`updatedBy`),"
         + " CONSTRAINT `groups_owner_foreign` FOREIGN KEY (`owner`) REFERENCES `users` (`uid`) ON DELETE SET NULL" + " ON UPDATE CASCADE"
         + " ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;",
-    "down": "DROP table groups"
+    "down": "DROP TABLE `groups`;"
 }

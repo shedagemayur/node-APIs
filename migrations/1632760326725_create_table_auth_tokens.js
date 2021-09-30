@@ -22,5 +22,5 @@ module.exports = {
         + " KEY `auth_tokens_deviceid_uid_deletedat_index` (`deviceId`,`uid`,`deletedAt`),"
         + " CONSTRAINT `auth_tokens_uid_foreign` FOREIGN KEY (`uid`) REFERENCES `users` (`uid`) ON DELETE CASCADE"
         + " ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;",
-    "down": "DROP table `auth_tokens`;"
+    "down": "DROP TABLE `auth_tokens`;"
 }
