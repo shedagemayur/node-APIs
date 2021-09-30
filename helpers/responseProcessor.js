@@ -13,3 +13,8 @@ exports.sendResponse = (...params) => {
         res.status(statusCode).send(data);
     }
 };
+
+exports.removeEmptyValues = (obj) => {
+    Object.keys(obj).forEach((key) => (obj[key] === undefined || obj[key] === null) && delete obj[key]);
+    return obj;
+};

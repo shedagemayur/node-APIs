@@ -6,6 +6,7 @@ exports.Messages = (params) => {
         },
         USERS: {
             'ER_DUP_ENTRY': `User with uid ${params} already exists.`,
+            'ER_CREATING_USER': `Error occured while creating user.`,
             'ER_USER_NOT_FOUND': `User with uid ${params} doesn't exists.`,
             'MSG_USER_DELETED': `User ${params} was deleted successfully.`,
         },
