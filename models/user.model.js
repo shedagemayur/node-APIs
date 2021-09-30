@@ -84,10 +84,10 @@ User.findByUID = async (uid, callback) => {
         const [rows] = await connection.query(sql, ['users', uid]);
         if (rows.length) return callback(null, rows);
 
-        callback(null, {
+        callback({
             error: 'ER_USER_NOT_FOUND',
             details: responseText('USERS', 'ER_USER_NOT_FOUND', uid)
-        }, 404);
+        }, null, 404);
     } catch (e) {
         callback({
             error: 'SERVER_ERROR',

@@ -38,7 +38,6 @@ exports.delete = (req, res) => {
 exports.checkUserExists = (req, res, next) => {
     User.findByUID(req.params.uid, (err, data, statusCode = 200) => {
         if (err) sendResponse(res, err, data, statusCode);
-        if (data.length) next();
-
+        if (data && data.length) next();
     });
 };
