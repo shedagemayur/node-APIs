@@ -1,12 +1,13 @@
+const crypto = require('crypto');
 const queryBuilder = require('../helpers/queryBuilder');
-const { responseText } = require('../helpers/responseProcessor');
+const { responseText, removeEmptyValues } = require('../helpers/responseProcessor');
 
-function AuthToken(user) {
+function AuthTokenSchema(user) {
     this.authToken = user.authToken;
     this.uid = user.uid;
     this.deviceId = user.deviceId;
     this.apiKey = user.apiKey;
-    this.plateform = user.plateform;
+    this.platform = user.platform;
     this.userAgent = user.userAgent;
     this.appInfo = user.appInfo;
     this.createdAt = user.createdAt;
@@ -14,109 +15,148 @@ function AuthToken(user) {
     this.deletedAt = user.deletedAt;
 }
 
-AuthToken.create = async (newAuthToken, callback) => {
-    Object.keys(newAuthToken).forEach((key) => newAuthToken[key] === undefined && delete newAuthToken[key]);
+AuthTokenSchema.select = (custom = []) => {
+    if (custom.length) return custom;
+    return ['uid', 'authToken', 'platform', 'userAgent', 'appInfo', 'createdAt'];
+}
+
+AuthTokenSchema.create = async (newAuthToken, callback, debug) => {
+    const tokenToCreate = removeEmptyValues(newAuthToken);
 
     const connection = await connectionPool.getConnection();
     const sql = queryBuilder('auth_tokens', 'CREATE', {});
 
-    newAuthToken.createdAt = newAuthToken.updatedAt = Math.floor(+new Date() / 1000);
+    tokenToCreate.authToken = newAuthToken['uid'] + '_' + crypto.createHash('sha1').update(crypto.randomBytes(64).toString('hex')).digest('hex');
+    tokenToCreate.createdAt = tokenToCreate.updatedAt = Math.floor(+new Date() / 1000);
 
     try {
-        await connection.query(sql, ['auth_tokens', newAuthToken]);
-        callback(null, { ...newAuthToken }, 201);
+        const [result] = await connection.query(sql, ['auth_tokens', tokenToCreate]);
+
+        if (result['affectedRows']) {
+            const getKey = queryBuilder('auth_tokens', 'FIND_CUSTOM', {});
+            const [rows] = await connection.query(getKey, [AuthTokenSchema.select(), 'auth_tokens', tokenToCreate.authToken]);
+
+            callback(null, { data: removeEmptyValues(rows[0]) }, 201);
+        } else {
+            callback(responseText({
+                type: 'error',
+                key: 'AUTH_TOKEN',
+                code: 'ER_CREATING_TOKEN'
+            }), null, 500);
+        }
     } catch (e) {
-        callback({
-            error: 'SERVER_ERROR',
-            details: responseText('GLOBALS', 'SERVER_ERROR')
-        }, null, 500);
+        callback(responseText({
+            type: 'error',
+            key: 'GLOBALS',
+            code: 'SERVER_ERROR',
+            trace: e
+        }, debug), null, 500);
     }
     finally {
         connection.release();
     }
 };
 
-AuthToken.getAll = async (pageNo, callback) => {
+AuthTokenSchema.getAll = async (uid, pageNo, callback, debug) => {
     const perPage = 10;
     const page = pageNo == null ? 1 : pageNo;
     const startAt = perPage * (page - 1);
 
     const connection = await connectionPool.getConnection();
 
-    const sql = queryBuilder('auth_tokens', 'LIST', {
+    const sql = queryBuilder('auth_tokens', 'LIST_CUSTOM', {
         'startAt': connection.escape(startAt),
         'perPage': connection.escape(perPage)
     });
     try {
-        const [rows] = await connection.query(sql, ['auth_tokens']);
-        callback(null, rows);
+        const [rows] = await connection.query(sql, [AuthTokenSchema.select(), 'auth_tokens', uid]);
+        if (rows.length == 0) return callback(null, { data: rows });
+
+        let filterRows = [];
+        rows.forEach(row => {
+            filterRows.push(removeEmptyValues(row));
+        });
+        callback(null, { data: filterRows });
     } catch (e) {
-        callback({
-            error: 'SERVER_ERROR',
-            details: responseText('GLOBALS', 'SERVER_ERROR')
-        }, null, 500);
+        callback(responseText({
+            type: 'error',
+            key: 'GLOBALS',
+            code: 'SERVER_ERROR',
+            trace: e
+        }, debug), null, 500);
     }
     finally {
         connection.release();
     }
 };
 
-AuthToken.findByToken = async (token, callback) => {
+AuthTokenSchema.findByToken = async (uid, token, callback, debug) => {
     const connection = await connectionPool.getConnection();
 
-    const sql = queryBuilder('auth_tokens', 'FIND', {});
+    const sql = queryBuilder('auth_tokens', 'FIND_CUSTOM', {});
 
     try {
-        const [rows] = await connection.query(sql, ['auth_tokens', token]);
-        if (rows.length) return callback(null, rows);
-
-        callback(null, rows, 404);
+        const [rows] = await connection.query(sql, [AuthTokenSchema.select(), 'auth_tokens', token]);
+        if (rows.length) {
+            return callback(null, { data: removeEmptyValues(rows[0]) });
+        } else {
+            callback(responseText({
+                type: 'error',
+                key: 'AUTH_TOKEN',
+                input: token,
+                code: 'ER_TOKEN_NOT_FOUND',
+            }), null, 404);
+        }
     } catch (e) {
-        console.log(e);
-        callback({
-            error: 'SERVER_ERROR',
-            details: responseText('GLOBALS', 'SERVER_ERROR')
-        }, null, 500);
+        callback(responseText({
+            type: 'error',
+            key: 'GLOBALS',
+            code: 'SERVER_ERROR',
+            trace: e
+        }, debug), null, 500);
     }
     finally {
         connection.release();
     }
 };
 
-AuthToken.update = async (token, newAuthToken, callback) => {
-    Object.keys(newAuthToken).forEach((key) => newAuthToken[key] === undefined && delete newAuthToken[key]);
+AuthTokenSchema.update = async (uid, token, newAuthToken, callback, debug) => {
+    const tokenToUpdate = removeEmptyValues(newAuthToken);
 
     const connection = await connectionPool.getConnection();
     const sql = queryBuilder('auth_tokens', 'UPDATE', {});
 
-    newAuthToken.updatedAt = Math.floor(+new Date() / 1000);
+    tokenToUpdate.updatedAt = Math.floor(+new Date() / 1000);
 
     try {
-        const [result] = await connection.query(sql, ['auth_tokens', newAuthToken, token]);
+        const [result] = await connection.query(sql, ['auth_tokens', tokenToUpdate, token]);
 
         if (result['affectedRows']) {
-            const getToken = queryBuilder('auth_tokens', 'FIND', {});
-            const [rows] = await connection.query(getToken, ['auth_tokens', token]);
-            callback(null, rows);
+            const getToken = queryBuilder('auth_tokens', 'FIND_CUSTOM', {});
+            const [rows] = await connection.query(getToken, [AuthTokenSchema.select(), 'auth_tokens', token]);
+            callback(null, { data: removeEmptyValues(rows[0]) });
         } else {
-            callback({
-                error: 'ER_TOKEN_NOT_FOUND',
-                details: responseText('AUTH_TOKENS', 'ER_TOKEN_NOT_FOUND', token)
-            }, null, 404);
+            callback(responseText({
+                type: 'error',
+                key: 'AUTH_TOKEN',
+                input: token,
+                code: 'ER_TOKEN_NOT_FOUND',
+            }), null, 404);
         }
     } catch (e) {
-        console.log(e);
-        callback({
-            error: 'SERVER_ERROR',
-            details: responseText('GLOBALS', 'SERVER_ERROR')
-        }, null, 500);
+        callback(responseText({
+            type: 'error',
+            key: 'GLOBALS',
+            code: 'SERVER_ERROR',
+            trace: e
+        }, debug), null, 500);
     }
     finally {
         connection.release();
     }
 };
 
-AuthToken.delete = async (token, callback) => {
+AuthTokenSchema.delete = async (uid, token, callback, debug) => {
     const connection = await connectionPool.getConnection();
 
     const sql = queryBuilder('auth_tokens', 'DELETE', {});
@@ -125,25 +165,31 @@ AuthToken.delete = async (token, callback) => {
         const [result] = await connection.query(sql, ['auth_tokens', token]);
 
         if (result['affectedRows']) {
-            callback(null, {
-                success: true,
-                details: responseText('AUTH_TOKEN', 'MSG_TOKEN_DELETED', token)
-            });
+            callback(null, responseText({
+                type: 'success',
+                key: 'AUTH_TOKEN',
+                input: token,
+                code: 'MSG_TOKEN_DELETED'
+            }));
         } else {
-            callback({
-                error: 'ER_TOKEN_NOT_FOUND',
-                details: responseText('AUTH_TOKEN', 'ER_TOKEN_NOT_FOUND', token)
-            }, null, 404);
+            callback(responseText({
+                type: 'error',
+                key: 'AUTH_TOKEN',
+                input: token,
+                code: 'ER_TOKEN_NOT_FOUND',
+            }), null, 404);
         }
     } catch (e) {
-        callback({
-            error: 'SERVER_ERROR',
-            details: responseText('GLOBALS', 'SERVER_ERROR')
-        }, null, 500);
+        callback(responseText({
+            type: 'error',
+            key: 'GLOBALS',
+            code: 'SERVER_ERROR',
+            trace: e
+        }, debug), null, 500);
     }
     finally {
         connection.release();
     }
 };
 
-module.exports = AuthToken;
+module.exports = AuthTokenSchema;

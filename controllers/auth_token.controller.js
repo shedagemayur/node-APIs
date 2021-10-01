@@ -1,43 +1,53 @@
 const UserSchema = require('../models/user.model');
-const AuthToken = require('../models/auth_token.model');
+const AuthTokenSchema = require('../models/auth_token.model');
 const { sendResponse } = require('../helpers/responseProcessor');
 
 exports.create = (req, res) => {
-    const token = new AuthToken(req.body);
+    const tokenData = {
+        uid: req.params.uid,
+        apiKey: req.headers.apikey
+    };
+    const token = new AuthTokenSchema(tokenData);
 
-    AuthToken.create(token, (err, data, statusCode = 200) => {
+    AuthTokenSchema.create(token, (err, data, statusCode = 200) => {
         sendResponse(res, err, data, statusCode);
-    });
+    }, req.query.debug);
 };
 
 exports.findAll = (req, res) => {
-    AuthToken.getAll(req.query.page, (err, data, statusCode = 200) => {
+    AuthTokenSchema.getAll(req.params.uid, req.query.page, (err, data, statusCode = 200) => {
         sendResponse(res, err, data, statusCode);
-    });
+    }, req.query.debug);
 };
 
 exports.findOne = (req, res) => {
-    AuthToken.findByToken(req.params.auth_token, (err, data, statusCode = 200) => {
+    AuthTokenSchema.findByToken(req.params.uid, req.params.auth_token, (err, data, statusCode = 200) => {
         sendResponse(res, err, data, statusCode);
-    });
+    }, req.query.debug);
 };
 
 exports.update = (req, res) => {
-    const token = new AuthToken(req.body);
-    AuthToken.update(req.params.auth_token, token, (err, data, statusCode = 200) => {
+    const tokenData = {
+        platform: req.body.platform,
+        userAgent: req.body.userAgent,
+        appInfo: req.body.appInfo
+    };
+    const token = new AuthTokenSchema(tokenData);
+
+    AuthTokenSchema.update(req.params.uid, req.params.auth_token, token, (err, data, statusCode = 200) => {
         sendResponse(res, err, data, statusCode);
-    });
+    }, req.query.debug);
 };
 
 exports.delete = (req, res) => {
-    AuthToken.delete(req.params.auth_token, (err, data, statusCode = 200) => {
+    AuthTokenSchema.delete(req.params.uid, req.params.auth_token, (err, data, statusCode = 200) => {
         sendResponse(res, err, data, statusCode);
-    });
+    }, req.query.debug);
 };
 
 exports.checkUserExists = (req, res, next) => {
     UserSchema.findByUID(req.params.uid, (err, data, statusCode = 200) => {
         if (err) sendResponse(res, err, data, statusCode);
-        if (data && data.length) next();
-    });
+        if (data && data.hasOwnProperty('data')) next();
+    }, req.query.debug);
 };

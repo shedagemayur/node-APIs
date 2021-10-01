@@ -17,8 +17,9 @@ exports.Messages = (params) => {
             'ER_CREATING_API_KEY': `Error occured while creating Api Key.`,
             'MSG_API_KEY_DELETED': `The Key ${params} has been deleted successfully.`,
         },
-        AUTH_TOKENS: {
+        AUTH_TOKEN: {
             'ER_TOKEN_NOT_FOUND': `Auth token ${params} doesn't exists.`,
+            'ER_CREATING_TOKEN': `Error occured while creating Auth Token.`,
             'MSG_TOKEN_DELETED': `Auth token ${params} has been deleted successfully.`,
         },
         GLOBALS: {
