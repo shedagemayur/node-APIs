@@ -1,8 +1,9 @@
 exports.Messages = (params) => {
     return {
         APP: {
-            'NOT_FOUND': `APP_ID ${params} is invalid.`,
-            'BAD_REQUEST': 'APP_ID field is required.'
+            'ER_APP_NOT_FOUND': `APP_ID ${params} is invalid.`,
+            'BAD_REQUEST': 'APP_ID field is required.',
+            'ER_ECONNREFUSED': `Unable to connect to caching server.`
         },
         USERS: {
             'ER_DUP_ENTRY': `User with uid ${params} already exists.`,

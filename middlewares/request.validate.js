@@ -5,8 +5,11 @@ exports.showError = (req, res, next) => {
 
     if (!errors.isEmpty()) {
         return res.status(400).json({
-            error: 'ER_BAD_REQUEST',
-            details: errors.mapped()
+            error: {
+                code: 'ER_BAD_REQUEST',
+                message: 'Oops! invalid request. Please check the trace.',
+                trace: errors.mapped()
+            }
         });
     }
     next();

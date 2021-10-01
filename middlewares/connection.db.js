@@ -19,11 +19,13 @@ exports.openConnection = async (req, res, next) => {
         console.log('connected as id ' + connection.threadId);
         connection.release();
         next();
-    } catch (err) {
-        console.error(err);
-        res.status(404).json({
-            error: 'NOT_FOUND',
-            details: responseText('APP', 'NOT_FOUND', ON_DEMAND_DB)
-        });
+    } catch (e) {
+        res.status(404).json(responseText({
+            type: 'error',
+            key: 'APP',
+            code: 'ER_APP_NOT_FOUND',
+            input: ON_DEMAND_DB,
+            trace: e
+        }, req.query.debug));
     }
 };

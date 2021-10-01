@@ -8,10 +8,12 @@ exports.execute = async (req, res, next) => {
 
     redisClient.on('error', (error) => {
         if (error) {
-            res.status(500).send({
-                error: 'ECONNREFUSED',
-                message: 'Unable to connect to caching server.'
-            });
+            res.status(500).json(responseText({
+                type: 'error',
+                key: 'APP',
+                code: 'ER_ECONNREFUSED',
+                trace: error
+            }, req.query.debug));
         }
     }).on('connect', async () => {
         redisClient.hget('migrations', dbName, async (error, data) => {
@@ -34,11 +36,12 @@ exports.execute = async (req, res, next) => {
                     next();
                 });
             } catch (e) {
-                console.log(e);
-                res.status(500).send({
-                    error: 'SERVER_ERROR',
-                    message: responseText('USERS', 'SERVER_ERROR')
-                });
+                res.status(500).json(responseText({
+                    type: 'error',
+                    key: 'GLOBALS',
+                    code: 'SERVER_ERROR',
+                    trace: e
+                }, req.query.debug));
             }
             finally {
                 connection.release();

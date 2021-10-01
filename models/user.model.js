@@ -34,7 +34,12 @@ const UserSchema = function (user) {
     this.statusMessage = user.statusMessage;
 }
 
-UserSchema.create = async (newUser, callback) => {
+UserSchema.select = (custom = []) => {
+    if (custom.length) return custom;
+    return ['uid', 'name', 'avatar', 'role', 'status', 'createdAt'];
+}
+
+UserSchema.create = async (newUser, callback, debug) => {
     const userToCreate = removeEmptyValues(newUser);
 
     const connection = await connectionPool.getConnection();
@@ -47,26 +52,32 @@ UserSchema.create = async (newUser, callback) => {
 
         if (result['affectedRows']) {
             const getUser = queryBuilder('users', 'FIND_CUSTOM', {});
-            const [rows] = await connection.query(getUser, [['uid', 'name', 'avatar', 'role', 'status', 'createdAt'], 'users', userToCreate.uid]);
+            const [rows] = await connection.query(getUser, [UserSchema.select(), 'users', userToCreate.uid]);
 
             callback(null, { data: removeEmptyValues(rows[0]) }, 201);
         } else {
-            callback({
-                error: 'ER_CREATING_USER',
-                details: responseText('USERS', 'ER_CREATING_USER')
-            }, null, 500);
+            callback(responseText({
+                type: 'error',
+                key: 'USERS',
+                code: 'ER_CREATING_USER'
+            }), null, 500);
         }
     } catch (e) {
         if (typeof (e) == 'object' && e.hasOwnProperty('code') && e.code == 'ER_DUP_ENTRY') {
-            callback({
-                error: 'ER_DUP_ENTRY',
-                details: responseText('USERS', 'ER_DUP_ENTRY', userToCreate.uid)
-            }, null, 409);
+            callback(responseText({
+                type: 'error',
+                key: 'USERS',
+                code: 'ER_DUP_ENTRY',
+                input: userToCreate.uid,
+                trace: e
+            }, debug), null, 409);
         } else {
-            callback({
-                error: 'SERVER_ERROR',
-                details: responseText('GLOBALS', 'SERVER_ERROR')
-            }, null, 500);
+            callback(responseText({
+                type: 'error',
+                key: 'GLOBALS',
+                code: 'SERVER_ERROR',
+                trace: e
+            }, debug), null, 500);
         }
     }
     finally {
@@ -74,7 +85,7 @@ UserSchema.create = async (newUser, callback) => {
     }
 };
 
-UserSchema.getAll = async (pageNo, callback) => {
+UserSchema.getAll = async (pageNo, callback, debug) => {
     const perPage = 10;
     const page = pageNo == null ? 1 : pageNo;
     const startAt = perPage * (page - 1);
@@ -86,52 +97,58 @@ UserSchema.getAll = async (pageNo, callback) => {
         'perPage': connection.escape(perPage)
     });
     try {
-        const [rows] = await connection.query(sql, [['uid', 'name', 'avatar', 'role', 'status', 'createdAt'], 'users']);
+        const [rows] = await connection.query(sql, [UserSchema.select(), 'users']);
         if (rows.length == 0) return callback(null, rows);
 
         let filterRows = [];
         rows.forEach(row => {
             filterRows.push(removeEmptyValues(row));
         });
-        callback(null, filterRows);
+        callback(null, { data: filterRows });
     } catch (e) {
-        callback({
-            error: 'SERVER_ERROR',
-            details: responseText('GLOBALS', 'SERVER_ERROR')
-        }, null, 500);
+        callback(responseText({
+            type: 'error',
+            key: 'GLOBALS',
+            code: 'SERVER_ERROR',
+            trace: e
+        }, debug), null, 500);
     }
     finally {
         connection.release();
     }
 };
 
-UserSchema.findByUID = async (uid, callback) => {
+UserSchema.findByUID = async (uid, callback, debug) => {
     const connection = await connectionPool.getConnection();
 
     const sql = queryBuilder('users', 'FIND_CUSTOM', {});
 
     try {
-        const [rows] = await connection.query(sql, [['uid', 'name', 'avatar', 'role', 'status', 'createdAt'], 'users', uid]);
+        const [rows] = await connection.query(sql, [UserSchema.select(), 'users', uid]);
         if (rows.length) {
             return callback(null, { data: removeEmptyValues(rows[0]) });
         } else {
-            callback({
-                error: 'ER_USER_NOT_FOUND',
-                details: responseText('USERS', 'ER_USER_NOT_FOUND', uid)
-            }, null, 404);
+            callback(responseText({
+                type: 'error',
+                key: 'USERS',
+                input: uid,
+                code: 'ER_USER_NOT_FOUND',
+            }), null, 404);
         }
     } catch (e) {
-        callback({
-            error: 'SERVER_ERROR',
-            details: responseText('GLOBALS', 'SERVER_ERROR')
-        }, null, 500);
+        callback(responseText({
+            type: 'error',
+            key: 'GLOBALS',
+            code: 'SERVER_ERROR',
+            trace: e
+        }, debug), null, 500);
     }
     finally {
         connection.release();
     }
 };
 
-UserSchema.update = async (uid, newUser, callback) => {
+UserSchema.update = async (uid, newUser, callback, debug) => {
     const userToCreate = removeEmptyValues(newUser);
 
     const connection = await connectionPool.getConnection();
@@ -144,27 +161,30 @@ UserSchema.update = async (uid, newUser, callback) => {
 
         if (result['affectedRows']) {
             const getUser = queryBuilder('users', 'FIND_CUSTOM', {});
-            const [rows] = await connection.query(getUser, [['uid', 'name', 'avatar', 'role', 'status', 'createdAt'], 'users', uid]);
+            const [rows] = await connection.query(getUser, [UserSchema.select(), 'users', uid]);
             callback(null, { data: removeEmptyValues(rows[0]) });
         } else {
-            callback({
-                error: 'ER_USER_NOT_FOUND',
-                details: responseText('USERS', 'ER_USER_NOT_FOUND', uid)
-            }, null, 404);
+            callback(responseText({
+                type: 'error',
+                key: 'USERS',
+                input: uid,
+                code: 'ER_USER_NOT_FOUND',
+            }), null, 404);
         }
     } catch (e) {
-        console.log(e);
-        callback({
-            error: 'SERVER_ERROR',
-            details: responseText('GLOBALS', 'SERVER_ERROR')
-        }, null, 500);
+        callback(responseText({
+            type: 'error',
+            key: 'GLOBALS',
+            code: 'SERVER_ERROR',
+            trace: e
+        }, debug), null, 500);
     }
     finally {
         connection.release();
     }
 };
 
-UserSchema.delete = async (uid, callback) => {
+UserSchema.delete = async (uid, callback, debug) => {
     const connection = await connectionPool.getConnection();
 
     const sql = queryBuilder('users', 'DELETE', {});
@@ -173,21 +193,22 @@ UserSchema.delete = async (uid, callback) => {
         const [result] = await connection.query(sql, ['users', uid]);
 
         if (result['affectedRows']) {
-            callback(null, {
-                success: true,
-                details: responseText('USERS', 'MSG_USER_DELETED', uid)
-            });
+            callback(null, responseText('sucess', 'USERS', 'MSG_USER_DELETED', uid));
         } else {
-            callback({
-                error: 'ER_USER_NOT_FOUND',
-                details: responseText('USERS', 'ER_USER_NOT_FOUND', uid)
-            }, null, 404);
+            callback(responseText({
+                type: 'error',
+                key: 'USERS',
+                input: uid,
+                code: 'ER_USER_NOT_FOUND',
+            }), null, 404);
         }
     } catch (e) {
-        callback({
-            error: 'SERVER_ERROR',
-            details: responseText('GLOBALS', 'SERVER_ERROR')
-        }, null, 500);
+        callback(responseText({
+            type: 'error',
+            key: 'GLOBALS',
+            code: 'SERVER_ERROR',
+            trace: e
+        }, debug), null, 500);
     }
     finally {
         connection.release();

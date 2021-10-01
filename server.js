@@ -5,7 +5,7 @@ const cors = require('cors');
 const database = require('./middlewares/connection.db');
 const migration = require('./middlewares/migration.exec');
 const validator = require('./middlewares/request.validate');
-const { header } = require('express-validator');
+const { header, query } = require('express-validator');
 
 const app = express();
 
@@ -17,7 +17,14 @@ app.use(express.urlencoded({
 }));
 app.use(
     [
-        header(['app_id']).not().isEmpty()
+        header(['app_id']).not().isEmpty(),
+        query(['debug']).optional().not().isEmpty().custom((value, { req }) => {
+            if (req.query.debugCode !== process.env.DEBUG_HASH) {
+                throw new Error('OOps! incorrect `debugCode`. Please verify the `debugCode` in query params.');
+            } else {
+                return true;
+            }
+        })
     ],
     validator.showError,
     database.openConnection

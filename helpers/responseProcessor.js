@@ -1,8 +1,34 @@
 const resCodeList = require('../constants/errors');
 
-exports.responseText = (type, code, params = '') => {
-    return resCodeList.Messages(params)[type][code];
-}
+exports.responseText = (params = {}, debug = false) => {
+    let response = {};
+
+    switch (params['type']) {
+        case 'error':
+            response = {
+                error: {
+                    code: params['code'],
+                    message: resCodeList.Messages(params['input'])[params['key']][params['code']]
+                }
+            }
+            break;
+
+        case 'success':
+            response = {
+                data: {
+                    success: true,
+                    message: resCodeList.Messages(params['input'])[params['key']][params['code']]
+                }
+            }
+            break;
+
+        default:
+            break;
+    }
+    if (debug) response[params['type']]['trace'] = params['trace'];
+
+    return response;
+};
 
 exports.sendResponse = (...params) => {
     [res, err, data, statusCode] = params;
