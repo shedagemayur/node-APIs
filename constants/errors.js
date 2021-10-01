@@ -9,15 +9,16 @@ exports.Messages = (params) => {
             'ER_DUP_ENTRY': `User with uid ${params} already exists.`,
             'ER_CREATING_USER': `Error occured while creating user.`,
             'ER_USER_NOT_FOUND': `User with uid ${params} doesn't exists.`,
-            'MSG_USER_DELETED': `User ${params} was deleted successfully.`,
+            'MSG_USER_DELETED': `User ${params} has been deleted successfully.`,
         },
         API_KEY: {
-            'ER_API_KEY_NOT_FOUND': `Api key ${params} doesn't exists.`,
-            'MSG_API_KEY_DELETED': `Api key ${params} was deleted successfully.`,
+            'ER_API_KEY_NOT_FOUND': `Api Key ${params} doesn't exists.`,
+            'ER_CREATING_API_KEY': `Error occured while creating Api Key.`,
+            'MSG_API_KEY_DELETED': `Api Key ${params} has been deleted successfully.`,
         },
         AUTH_TOKENS: {
             'ER_TOKEN_NOT_FOUND': `Auth token ${params} doesn't exists.`,
-            'MSG_TOKEN_DELETED': `Auth token ${params} was deleted successfully.`,
+            'MSG_TOKEN_DELETED': `Auth token ${params} has been deleted successfully.`,
         },
         GLOBALS: {
             'SERVER_ERROR': `Internal server error.`,

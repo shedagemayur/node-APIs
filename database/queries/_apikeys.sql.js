@@ -4,6 +4,8 @@ const queries = {
     CREATE: `INSERT INTO ?? SET ?`,
     UPDATE: `UPDATE ?? SET ? WHERE apiKey = ?`,
     DELETE: `DELETE FROM ?? WHERE apiKey = ?`,
+    FIND_CUSTOM: `SELECT ?? FROM ?? WHERE apiKey = ?`,
+    LIST_CUSTOM: `SELECT ?? FROM ?? LIMIT <<startAt>>, <<perPage>>`,
 }
 
 module.exports = queries;

@@ -98,7 +98,7 @@ UserSchema.getAll = async (pageNo, callback, debug) => {
     });
     try {
         const [rows] = await connection.query(sql, [UserSchema.select(), 'users']);
-        if (rows.length == 0) return callback(null, rows);
+        if (rows.length == 0) return callback(null, { data: rows });
 
         let filterRows = [];
         rows.forEach(row => {
@@ -193,7 +193,12 @@ UserSchema.delete = async (uid, callback, debug) => {
         const [result] = await connection.query(sql, ['users', uid]);
 
         if (result['affectedRows']) {
-            callback(null, responseText('sucess', 'USERS', 'MSG_USER_DELETED', uid));
+            callback(null, responseText({
+                type: 'success',
+                key: 'USERS',
+                input: uid,
+                code: 'MSG_USER_DELETED'
+            }));
         } else {
             callback(responseText({
                 type: 'error',
