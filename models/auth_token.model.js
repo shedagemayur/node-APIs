@@ -96,7 +96,7 @@ AuthTokenSchema.findByToken = async (uid, token, callback, debug) => {
     const sql = queryBuilder('auth_tokens', 'FIND_CUSTOM', {});
 
     try {
-        const [rows] = await connection.query(sql, [AuthTokenSchema.select(), 'auth_tokens', token]);
+        const [rows] = await connection.query(sql, [AuthTokenSchema.select(), 'auth_tokens', uid, token]);
         if (rows.length) {
             return callback(null, { data: removeEmptyValues(rows[0]) });
         } else {
@@ -129,7 +129,7 @@ AuthTokenSchema.update = async (uid, token, newAuthToken, callback, debug) => {
     tokenToUpdate.updatedAt = Math.floor(+new Date() / 1000);
 
     try {
-        const [result] = await connection.query(sql, ['auth_tokens', tokenToUpdate, token]);
+        const [result] = await connection.query(sql, ['auth_tokens', tokenToUpdate, uid, token]);
 
         if (result['affectedRows']) {
             const getToken = queryBuilder('auth_tokens', 'FIND_CUSTOM', {});
@@ -162,7 +162,7 @@ AuthTokenSchema.delete = async (uid, token, callback, debug) => {
     const sql = queryBuilder('auth_tokens', 'DELETE', {});
 
     try {
-        const [result] = await connection.query(sql, ['auth_tokens', token]);
+        const [result] = await connection.query(sql, ['auth_tokens', uid, token]);
 
         if (result['affectedRows']) {
             callback(null, responseText({
