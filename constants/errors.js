@@ -12,9 +12,10 @@ exports.Messages = (params) => {
             'MSG_USER_DELETED': `User ${params} has been deleted successfully.`,
         },
         API_KEY: {
-            'ER_API_KEY_NOT_FOUND': `Api Key ${params} doesn't exists.`,
+            'ER_AUTH_NO_ACCESS': `The Key ${params} cannot be used to perform this operation. Please use API key with a correct scope to perform the operation.`,
+            'ER_API_KEY_NOT_FOUND': `The Key ${params} doesn't exists.`,
             'ER_CREATING_API_KEY': `Error occured while creating Api Key.`,
-            'MSG_API_KEY_DELETED': `Api Key ${params} has been deleted successfully.`,
+            'MSG_API_KEY_DELETED': `The Key ${params} has been deleted successfully.`,
         },
         AUTH_TOKENS: {
             'ER_TOKEN_NOT_FOUND': `Auth token ${params} doesn't exists.`,

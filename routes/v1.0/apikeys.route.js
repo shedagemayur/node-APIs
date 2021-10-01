@@ -29,5 +29,10 @@ module.exports = (app) => {
         )
         .delete(apikeys.delete);
 
-    app.use('/v1.0/apikeys', header('apiKey').not().isEmpty(), validator.showError, router);
+    app.use('/v1.0/apikeys',
+        header('apiKey').not().isEmpty(),
+        validator.showError,
+        apikeys.validate,
+        router
+    );
 }

@@ -1,35 +1,54 @@
-const APIKey = require('../models/apikey.model');
-const { sendResponse } = require('../helpers/responseProcessor');
+const APIKeySchema = require('../models/apikey.model');
+const { responseText, sendResponse } = require('../helpers/responseProcessor');
 
 exports.create = (req, res) => {
-    const apikey = new APIKey(req.body);
+    const apikey = new APIKeySchema(req.body);
 
-    APIKey.create(apikey, (err, data, statusCode = 200) => {
+    APIKeySchema.create(apikey, (err, data, statusCode = 200) => {
         sendResponse(res, err, data, statusCode);
     }, req.query.debug);
 };
 
 exports.findAll = (req, res) => {
-    APIKey.getAll(req, (err, data, statusCode = 200) => {
+    APIKeySchema.getAll(req, (err, data, statusCode = 200) => {
         sendResponse(res, err, data, statusCode);
     }, req.query.debug);
 };
 
 exports.findOne = (req, res) => {
-    APIKey.findByKey(req.params.apiKey, (err, data, statusCode = 200) => {
+    APIKeySchema.findByKey(req.params.apiKey, (err, data, statusCode = 200) => {
         sendResponse(res, err, data, statusCode);
     }, req.query.debug);
 };
 
 exports.update = (req, res) => {
-    const apikey = new APIKey(req.body);
-    APIKey.update(req.params.apiKey, apikey, (err, data, statusCode = 200) => {
+    const apikey = new APIKeySchema(req.body);
+    APIKeySchema.update(req.params.apiKey, apikey, (err, data, statusCode = 200) => {
         sendResponse(res, err, data, statusCode);
     }, req.query.debug);
 };
 
 exports.delete = (req, res) => {
-    APIKey.delete(req.params.apiKey, (err, data, statusCode = 200) => {
+    APIKeySchema.delete(req.params.apiKey, (err, data, statusCode = 200) => {
         sendResponse(res, err, data, statusCode);
+    }, req.query.debug);
+};
+
+exports.validate = (req, res, next) => {
+    APIKeySchema.findByKey(req.headers.apikey, (err, data, statusCode = 200) => {
+        if (err) sendResponse(res, err, data, statusCode);
+        if (data && data.hasOwnProperty('data')) {
+            data = data['data'];
+            if (data.hasOwnProperty('scope') && data['scope'] === 'fullAccess') {
+                next();
+            } else {
+                sendResponse(res, responseText({
+                    type: 'error',
+                    key: 'API_KEY',
+                    input: req.headers.apikey,
+                    code: 'ER_AUTH_NO_ACCESS',
+                }), null, 403);
+            }
+        }
     }, req.query.debug);
 };
