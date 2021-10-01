@@ -29,7 +29,7 @@ if (checkCommand.length && checkCommand[0] == 'up') {
         host: process.env.DB_HOST,
         user: process.env.DB_USERNAME,
         password: '',
-        database: 'atomchat' // add local database to create migration files in /migration dir
+        database: 'chatdb' // add local database to create migration files in /migration dir
     });
 
     migrations.init(connection, __dirname + '/migrations', () => {
