@@ -1,14 +1,14 @@
 {
 	"name": "chat-api",
 	"version": "1.0.0",
-	"description": "chat APIs for atomchat",
+	"description": "chat APIs for communications.",
 	"main": "index.js",
 	"scripts": {
 		"start": "node server.js",
 		"devStart": "nodemon server.js"
 	},
 	"author": "AtomChat",
-	"license": "atomchat.com",
+	"license": "MIT",
 	"dependencies": {
 		"cors": "^2.8.5",
 		"dotenv": "^10.0.0",
